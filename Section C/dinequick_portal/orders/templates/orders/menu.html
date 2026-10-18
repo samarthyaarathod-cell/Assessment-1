@@ -1,0 +1,277 @@
+{% extends "orders/base.html" %}
+
+{% block title %}{{ restaurant.name }} Menu · DineQuick Portal{% endblock %}
+
+{% block content %}
+<!-- Restaurant Header Card -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+  <div class="p-4 p-md-5" style="background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%); color: white;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <a href="{% url 'restaurant-list' %}" class="btn btn-sm btn-outline-light rounded-pill px-3 mb-3">
+          <i class="bi bi-arrow-left me-1"></i> All Restaurants
+        </a>
+        <h1 class="display-6 fw-bold mb-1 text-white">{{ restaurant.name }}</h1>
+        <div class="d-flex flex-wrap align-items-center gap-3 text-white-50 small">
+          <span><i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ restaurant.city }}</span>
+          <span>&bull;</span>
+          <span><i class="bi bi-star-fill text-warning me-1"></i>4.8 (250+ reviews)</span>
+          <span>&bull;</span>
+          <span class="badge bg-success bg-opacity-75 rounded-pill px-3 py-1">Open Now</span>
+        </div>
+      </div>
+
+      {% if not user.is_authenticated %}
+      <div class="card bg-black bg-opacity-25 border-0 rounded-3 p-3 text-white" style="max-width: 320px;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi bi-info-circle-fill text-warning fs-5"></i>
+          <span class="fw-bold small">Browsing Menu Only</span>
+        </div>
+        <p class="small text-white-50 mb-2">Sign in or create an account to add dishes and place orders.</p>
+        <div class="d-flex gap-2">
+          <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-warning btn-sm fw-bold flex-grow-1 rounded-pill">Sign In</a>
+          <a href="{% url 'register' %}?next={{ request.path }}" class="btn btn-outline-light btn-sm flex-grow-1 rounded-pill">Register</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Category Nav Pills -->
+  <div class="bg-white px-4 py-3 border-top d-flex gap-2 overflow-auto" id="categoryTabs">
+    <a href="#all" class="btn btn-sm btn-dark rounded-pill px-3 active cat-pill" data-target="all">All Dishes</a>
+    {% for category in categorized_items.keys %}
+    <a href="#cat-{{ category|lower }}" class="btn btn-sm btn-light border rounded-pill px-3 cat-pill" data-target="cat-{{ category|lower }}">
+      {{ category }}s
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Order Placement Form -->
+{% if user.is_authenticated %}
+<form method="post" action="{% url 'place-order' restaurant.pk %}" id="orderForm">
+  {% csrf_token %}
+{% endif %}
+
+  <div class="row g-4">
+    <!-- Menu Dishes Column -->
+    <div class="col-lg-8">
+      {% for category, cat_items in categorized_items.items %}
+      <div class="category-section mb-5" id="cat-{{ category|lower }}">
+        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+          <span class="badge rounded-circle p-2 {% if category == 'Starter' %}dq-badge-starter{% elif category == 'Main' %}dq-badge-main{% elif category == 'Dessert' %}dq-badge-dessert{% else %}dq-badge-beverage{% endif %}">
+            <i class="bi {% if category == 'Starter' %}bi-egg-fried{% elif category == 'Main' %}bi-fire{% elif category == 'Dessert' %}bi-cake2{% else %}bi-cup-straw{% endif %} fs-6"></i>
+          </span>
+          <h2 class="h5 fw-bold mb-0 text-dark">{{ category }} Specialties</h2>
+          <span class="text-muted small ms-auto">{{ cat_items|length }} item{{ cat_items|length|pluralize }}</span>
+        </div>
+
+        <div class="row g-3">
+          {% for item in cat_items %}
+          <div class="col-md-6">
+            <div class="dq-dish-card h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div class="d-flex align-items-center">
+                    <span class="dq-veg-mark" title="Vegetarian item"></span>
+                    <h3 class="h6 fw-bold mb-0 text-dark">{{ item.name }}</h3>
+                  </div>
+                  <span class="badge rounded-pill small px-2 py-1 {% if item.category == 'Starter' %}dq-badge-starter{% elif item.category == 'Main' %}dq-badge-main{% elif item.category == 'Dessert' %}dq-badge-dessert{% else %}dq-badge-beverage{% endif %}">
+                    {{ item.category }}
+                  </span>
+                </div>
+                <p class="text-muted small mb-3">Freshly made on order, served hot and portioned generously.</p>
+              </div>
+
+              <div class="pt-2 border-top d-flex justify-content-between align-items-center mt-2">
+                <span class="fs-5 fw-bold text-success">Rs {{ item.price }}</span>
+
+                {% if user.is_authenticated %}
+                <!-- Quantity Stepper -->
+                <div class="dq-qty-stepper shadow-sm">
+                  <button type="button" class="dq-qty-btn minus-btn" aria-label="Decrease quantity">&minus;</button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    value="0"
+                    id="qty_{{ item.pk }}"
+                    name="qty_{{ item.pk }}"
+                    class="dq-qty-input item-qty"
+                    data-price="{{ item.price }}"
+                    data-name="{{ item.name }}"
+                    aria-label="Quantity for {{ item.name }}"
+                    readonly
+                  >
+                  <button type="button" class="dq-qty-btn plus-btn" aria-label="Increase quantity">+</button>
+                </div>
+                {% else %}
+                <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 small">
+                  Sign in to Order
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="card p-5 text-center border-0 shadow-sm rounded-4">
+        <i class="bi bi-cup-hot text-muted display-4 mb-2"></i>
+        <h3 class="h5 fw-bold">No menu items found</h3>
+        <p class="text-muted small mb-0">This restaurant does not have any active dishes right now.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Live Sticky Cart Column -->
+    <div class="col-lg-4">
+      <div class="dq-cart-card sticky-top" style="top: 90px;">
+        <div class="dq-cart-header d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-bag-check-fill text-warning fs-5"></i>
+            <span class="fw-bold fs-6">Order Cart</span>
+          </div>
+          <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 small" id="totalItemsBadge">
+            0 Items
+          </span>
+        </div>
+
+        <div class="p-4">
+          {% if user.is_authenticated %}
+          <div id="cartItemsList" class="mb-3" style="max-height: 280px; overflow-y: auto;">
+            <div class="text-center py-4 text-muted small">
+              <i class="bi bi-cart3 fs-1 text-black-50 d-block mb-2"></i>
+              Your cart is empty.<br>Click <strong>+</strong> on any dish to add.
+            </div>
+          </div>
+
+          <div class="border-top pt-3 mb-4">
+            <div class="d-flex justify-content-between text-muted small mb-2">
+              <span>Item Subtotal:</span>
+              <span id="subtotalDisplay" class="fw-semibold text-dark">Rs 0.00</span>
+            </div>
+            <div class="d-flex justify-content-between text-muted small mb-2">
+              <span>Delivery Fee:</span>
+              <span class="text-success fw-semibold">FREE</span>
+            </div>
+            <hr class="my-2">
+            <div class="d-flex justify-content-between align-items-center fs-5">
+              <strong class="fw-bold text-dark">Total Payable:</strong>
+              <strong id="totalPriceDisplay" class="fw-bold text-success">Rs 0.00</strong>
+            </div>
+          </div>
+
+          <button type="submit" id="placeOrderBtn" class="dq-pulse-btn w-100 d-flex justify-content-center align-items-center gap-2" disabled>
+            <i class="bi bi-bag-check-fill"></i>
+            <span>Confirm &amp; Place Order</span>
+          </button>
+          <div class="text-center text-muted small mt-2">
+            <i class="bi bi-shield-check me-1 text-success"></i> Instant order receipt &amp; email confirmation
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <div class="dq-auth-icon mb-3">
+              <i class="bi bi-person-lock"></i>
+            </div>
+            <h4 class="h6 fw-bold mb-1">Customer Sign In Required</h4>
+            <p class="text-muted small mb-4">You are currently browsing as a guest. Please sign in to choose items and place orders.</p>
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-success w-100 rounded-pill py-2 fw-semibold mb-2 shadow-sm">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Order
+            </a>
+            <a href="{% url 'register' %}?next={{ request.path }}" class="btn btn-outline-secondary btn-sm w-100 rounded-pill">
+              Create an Account
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% if user.is_authenticated %}
+</form>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if user.is_authenticated %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const qtyInputs = document.querySelectorAll(".item-qty");
+    const cartItemsList = document.getElementById("cartItemsList");
+    const subtotalDisplay = document.getElementById("subtotalDisplay");
+    const totalPriceDisplay = document.getElementById("totalPriceDisplay");
+    const totalItemsBadge = document.getElementById("totalItemsBadge");
+    const placeOrderBtn = document.getElementById("placeOrderBtn");
+
+    // Stepper Button Listeners
+    document.querySelectorAll(".plus-btn").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const input = this.parentElement.querySelector(".item-qty");
+        let val = parseInt(input.value) || 0;
+        input.value = val + 1;
+        updateCart();
+      });
+    });
+
+    document.querySelectorAll(".minus-btn").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const input = this.parentElement.querySelector(".item-qty");
+        let val = parseInt(input.value) || 0;
+        if (val > 0) {
+          input.value = val - 1;
+          updateCart();
+        }
+      });
+    });
+
+    function updateCart() {
+      let totalQty = 0;
+      let totalAmount = 0.0;
+      let itemsHtml = [];
+
+      qtyInputs.forEach(input => {
+        const qty = parseInt(input.value) || 0;
+        if (qty > 0) {
+          const price = parseFloat(input.dataset.price);
+          const name = input.dataset.name;
+          const lineTotal = price * qty;
+          totalQty += qty;
+          totalAmount += lineTotal;
+
+          itemsHtml.push(`
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-light">
+              <div class="small">
+                <div class="fw-semibold text-dark">${name}</div>
+                <span class="text-muted">Rs ${price.toFixed(2)} &times; ${qty}</span>
+              </div>
+              <span class="fw-bold text-success small">Rs ${lineTotal.toFixed(2)}</span>
+            </div>
+          `);
+        }
+      });
+
+      totalItemsBadge.textContent = `${totalQty} Item${totalQty === 1 ? '' : 's'}`;
+      subtotalDisplay.textContent = `Rs ${totalAmount.toFixed(2)}`;
+      totalPriceDisplay.textContent = `Rs ${totalAmount.toFixed(2)}`;
+
+      if (itemsHtml.length > 0) {
+        cartItemsList.innerHTML = itemsHtml.join("");
+        placeOrderBtn.disabled = false;
+      } else {
+        cartItemsList.innerHTML = `
+          <div class="text-center py-4 text-muted small">
+            <i class="bi bi-cart3 fs-1 text-black-50 d-block mb-2"></i>
+            Your cart is empty.<br>Click <strong>+</strong> on any dish to add.
+          </div>
+        `;
+        placeOrderBtn.disabled = true;
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

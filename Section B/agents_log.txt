@@ -1,0 +1,7 @@
+[2026-10-18 14:53:47 UTC] REJECTED: Agent 'TestAgent' already has 5 active orders (Maximum allowed: 5).
+[2026-10-18 15:01:02 UTC] SUCCESS: Order 'ORD-101' successfully assigned to Agent 'Kavita Verma' (Active: 1/5).
+[2026-10-18 15:01:02 UTC] SUCCESS: Order 'ORD-102' successfully assigned to Agent 'Kavita Verma' (Active: 2/5).
+[2026-10-18 15:01:02 UTC] SUCCESS: Order 'ORD-103' successfully assigned to Agent 'Kavita Verma' (Active: 3/5).
+[2026-10-18 15:01:02 UTC] SUCCESS: Order 'ORD-104' successfully assigned to Agent 'Kavita Verma' (Active: 4/5).
+[2026-10-18 15:01:02 UTC] SUCCESS: Order 'ORD-105' successfully assigned to Agent 'Kavita Verma' (Active: 5/5).
+[2026-10-18 15:01:02 UTC] REJECTED: Agent 'Kavita Verma' already has 5 active orders (Maximum allowed: 5).

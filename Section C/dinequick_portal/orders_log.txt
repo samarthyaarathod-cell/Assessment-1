@@ -1,0 +1,1 @@
+order_id=1 | customer='testcustomer' | restaurant='Royal Feast' | total=Rs 750.00 | placed_at=2026-10-18 15:06:47

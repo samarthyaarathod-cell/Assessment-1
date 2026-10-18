@@ -1,0 +1,132 @@
+{% extends "orders/base.html" %}
+
+{% block title %}Explore Restaurants · DineQuick Portal{% endblock %}
+
+{% block content %}
+<!-- Food Portal Hero Section -->
+<div class="dq-hero">
+  <div class="row align-items-center position-relative" style="z-index: 2;">
+    <div class="col-lg-8">
+      <span class="dq-hero-badge"><i class="bi bi-stars text-warning"></i> Fast Delivery Across Cities</span>
+      <h1 class="display-5 fw-bold mb-3 text-white">Delicious Food, Delivered In Minutes.</h1>
+      <p class="lead mb-4 text-white-50" style="max-width: 600px;">
+        Browse authentic menus from top-rated restaurants in Mumbai, Delhi, and Bengaluru. Handcrafted dishes, transparent pricing, and instant order tracking.
+      </p>
+      {% if not user.is_authenticated %}
+      <div class="d-flex flex-wrap gap-3">
+        <a href="{% url 'register' %}" class="btn btn-warning btn-lg fw-bold rounded-pill px-4 shadow">
+          <i class="bi bi-person-plus-fill me-1"></i> Join DineQuick Free
+        </a>
+        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg rounded-pill px-4">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+        </a>
+      </div>
+      {% else %}
+      <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 backdrop-blur rounded-pill py-2 px-3 text-white small">
+        <i class="bi bi-check-circle-fill text-warning"></i>
+        <span>Logged in as <strong>{{ user.get_full_name|default:user.username }}</strong>. Select a restaurant below to start ordering!</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Section Header & Quick Search -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h2 class="h3 fw-bold mb-1">Featured Restaurants</h2>
+    <p class="text-muted small mb-0">Discover local favorites and curated culinary destinations</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <div class="input-group input-group-sm" style="max-width: 260px;">
+      <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+      <input type="text" id="restaurantFilter" class="form-control border-start-0" placeholder="Filter by name or city...">
+    </div>
+    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
+      {{ restaurants|length }} Active
+    </span>
+  </div>
+</div>
+
+<!-- Restaurants Grid -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="restaurantGrid">
+  {% for restaurant in restaurants %}
+  <div class="col restaurant-col" data-name="{{ restaurant.name|lower }}" data-city="{{ restaurant.city|lower }}">
+    <div class="dq-restaurant-card h-100">
+      <!-- Gradient Banner with Badge -->
+      <div class="dq-card-banner dq-card-banner-{{ forloop.counter|default:1|divisibleby:4|yesno:'4,1' }}">
+        <div class="dq-rating-pill shadow-sm">
+          <i class="bi bi-star-fill text-warning"></i> 4.8
+        </div>
+        <span class="badge bg-black bg-opacity-50 text-white rounded-pill px-3 py-1 small">
+          <i class="bi bi-clock me-1"></i> 25–35 min
+        </span>
+      </div>
+
+      <!-- Food Icon Avatar -->
+      <div class="dq-card-avatar">
+        {% if forloop.counter == 1 %}🥘{% elif forloop.counter == 2 %}🍛{% elif forloop.counter == 3 %}🥗{% else %}🍤{% endif %}
+      </div>
+
+      <!-- Card Body Content -->
+      <div class="p-4 pt-3 d-flex flex-column flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h3 class="h5 fw-bold text-dark mb-0">{{ restaurant.name }}</h3>
+        </div>
+        <div class="d-flex align-items-center gap-1 text-muted small mb-3">
+          <i class="bi bi-geo-alt-fill text-danger"></i>
+          <span class="fw-semibold text-secondary">{{ restaurant.city }}</span>
+          <span>&bull;</span>
+          <span>{{ restaurant.menu_items.count }} dishes available</span>
+        </div>
+
+        <p class="text-muted small mb-4 flex-grow-1">
+          Specializing in fresh culinary preparations, hygienic packaging, and rapid doorstep delivery across {{ restaurant.city }}.
+        </p>
+
+        <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+          <span class="badge bg-light text-success border border-success-subtle rounded-pill px-3 py-2 small">
+            <i class="bi bi-check-circle-fill me-1"></i> Open for Delivery
+          </span>
+          <a href="{% url 'restaurant-menu' restaurant.pk %}" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm">
+            View Menu <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card p-5 text-center border-0 shadow-sm rounded-4">
+      <div class="display-1 text-muted mb-3">🍽️</div>
+      <h3 class="h4 fw-bold mb-2">No restaurants listed yet</h3>
+      <p class="text-muted mb-3">Run <code>py manage.py seed_portal</code> or add restaurants through the administration panel.</p>
+      {% if user.is_staff %}
+      <div>
+        <a href="/panel/orders/restaurant/add/" class="btn btn-primary rounded-pill px-4">Add Restaurant</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Live client-side restaurant search filter
+  document.getElementById('restaurantFilter')?.addEventListener('input', function(e) {
+    const term = e.target.value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.restaurant-col');
+    cards.forEach(card => {
+      const name = card.dataset.name || '';
+      const city = card.dataset.city || '';
+      if (name.includes(term) || city.includes(term)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+</script>
+{% endblock %}

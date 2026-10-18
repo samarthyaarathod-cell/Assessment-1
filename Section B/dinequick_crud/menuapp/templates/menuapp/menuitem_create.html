@@ -1,0 +1,13 @@
+{% extends "menuapp/base.html" %}
+{% block title %}Add menu item{% endblock %}
+{% block content %}
+<div class="breadcrumb"><a href="{% url 'menu-list' %}">Menu</a><span>/</span><span>Add item</span></div>
+<section class="form-layout"><div class="form-intro"><p class="eyebrow">GIVE THEM SOMETHING TO CRAVE</p><h1>Add a new<br>menu item<span class="heading-dot">.</span></h1><p class="lead">Add the details and we’ll get it ready for your menu.</p><div class="tip-card"><span class="tip-icon">✦</span><p><strong>A little tip</strong><br>Clear names and accurate prices help customers order with confidence.</p></div></div>
+<div class="surface form-surface">{% if not has_restaurants %}<div class="notice notice-warning"><strong>Set up a restaurant first</strong><p>The restaurant list is empty, so there is nowhere to assign this dish yet.</p><a href="{% url 'admin:menuapp_restaurant_add' %}">Create a restaurant in Admin <span>↗</span></a></div>{% endif %}<form method="post" class="menu-form" novalidate>{% csrf_token %}{% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+<div class="form-field">{{ form.name.label_tag }}{{ form.name }}{% for error in form.name.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+<div class="form-row"><div class="form-field">{{ form.category.label_tag }}{{ form.category }}{% for error in form.category.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div><div class="form-field">{{ form.price.label_tag }}<div class="price-input"><span>₹</span>{{ form.price }}</div>{% for error in form.price.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div></div>
+<div class="form-field">{{ form.restaurant.label_tag }}{{ form.restaurant }}{% for error in form.restaurant.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+<label class="availability-row"><span class="toggle-wrap">{{ form.available }}<span class="toggle-ui"></span></span><span><strong>Available to order</strong><small>Customers can see and order this item.</small></span></label>
+<div class="form-actions"><a class="button button-quiet" href="{% url 'menu-list' %}">Cancel</a><button class="button button-primary" type="submit" {% if not has_restaurants %}disabled{% endif %}>Create item <span>→</span></button></div>
+</form></div></section>
+{% endblock %}

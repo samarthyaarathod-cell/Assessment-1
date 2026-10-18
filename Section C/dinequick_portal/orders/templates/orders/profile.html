@@ -1,0 +1,133 @@
+{% extends "orders/base.html" %}
+
+{% block title %}Customer Profile · DineQuick Portal{% endblock %}
+
+{% block content %}
+<div class="row g-4 py-2">
+  <!-- Profile & Edit Form Column -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+      <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+        <div class="dq-avatar-container">
+          {% if profile.photo %}
+          <img src="{{ profile.photo.url }}" alt="{{ user.username }}" class="dq-avatar-img">
+          {% else %}
+          <div class="dq-avatar-img bg-light d-flex align-items-center justify-content-center text-secondary mx-auto">
+            <i class="bi bi-person-fill display-3"></i>
+          </div>
+          {% endif %}
+        </div>
+        <h1 class="h4 fw-bold mb-1 text-white">{{ user.get_full_name|default:user.username }}</h1>
+        <p class="text-white-50 small mb-0"><i class="bi bi-envelope me-1"></i>{{ user.email }}</p>
+      </div>
+
+      <div class="card-body p-4 p-md-4">
+        <h2 class="h6 text-uppercase fw-bold text-muted mb-3" style="letter-spacing: 0.06em;">Edit Account Information</h2>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label small fw-bold">First Name</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-bold">Last Name</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Email Address</label>
+            {{ form.email }}
+            <div class="form-text small">Registered login email address.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Phone Number</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors }}</div>{% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-bold">Profile Photo (Upload)</label>
+            {{ form.photo }}
+            <div class="form-text small">Supported formats: JPG, PNG, GIF. Processed via Pillow &amp; Django MEDIA.</div>
+            {% if form.photo.errors %}<div class="text-danger small mt-1">{{ form.photo.errors }}</div>{% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm">
+            <i class="bi bi-check-lg me-1"></i> Update Profile Details
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order History Column -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+      <div class="p-4 bg-white border-bottom d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="h5 fw-bold mb-0 text-dark">Order History</h2>
+          <p class="text-muted small mb-0">Track and review your placed restaurant orders</p>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold">
+          {{ orders|length }} Orders
+        </span>
+      </div>
+
+      <div class="card-body p-0">
+        {% if orders %}
+        <div class="list-group list-group-flush">
+          {% for order in orders %}
+          <div class="list-group-item p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h3 class="h6 fw-bold mb-1 text-dark">
+                  Order #{{ order.pk }} &bull; {{ order.restaurant.name }}
+                </h3>
+                <span class="text-muted small">
+                  <i class="bi bi-calendar3 me-1"></i>{{ order.placed_at|date:"M d, Y &bull; h:i A" }}
+                </span>
+              </div>
+              <span class="badge bg-success text-white rounded-pill px-3 py-1 small">
+                {{ order.status }}
+              </span>
+            </div>
+
+            <div class="small text-secondary mb-3">
+              {% for line in order.items.all %}
+                <span class="badge bg-light text-dark border me-1 mb-1">
+                  {{ line.menu_item.name }} &times; {{ line.quantity }}
+                </span>
+              {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <span class="fw-bold text-dark fs-6">Total: Rs {{ order.total }}</span>
+              <a href="{% url 'order-detail' order.pk %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                View Receipt <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-bag-x fs-1 text-secondary d-block mb-2"></i>
+          <h4 class="h6 fw-bold">No orders placed yet</h4>
+          <p class="small mb-3">You haven't placed any orders with this account yet.</p>
+          <a href="{% url 'restaurant-list' %}" class="btn btn-sm btn-success rounded-pill px-4">
+            Browse Restaurants
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

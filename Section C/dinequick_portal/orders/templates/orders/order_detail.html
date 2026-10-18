@@ -1,0 +1,123 @@
+{% extends "orders/base.html" %}
+
+{% block title %}Order #{{ order.pk }} Confirmation · DineQuick Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-2">
+  <div class="col-lg-8">
+    <div class="dq-receipt-card mb-4">
+      <!-- Receipt Header Banner -->
+      <div class="dq-receipt-header">
+        <div class="badge bg-white text-success rounded-pill px-3 py-1 mb-2 fw-bold text-uppercase" style="letter-spacing: 0.05em;">
+          <i class="bi bi-patch-check-fill me-1"></i> Order Confirmed
+        </div>
+        <h1 class="display-6 fw-bold mb-1 text-white">Order #{{ order.pk }}</h1>
+        <p class="text-white-50 mb-0">We have received your order! Preparing with fresh ingredients.</p>
+      </div>
+      <div class="dq-receipt-tear"></div>
+
+      <!-- Receipt Body -->
+      <div class="p-4 p-md-5">
+        <!-- Live Delivery Status Progress Bar -->
+        <h2 class="h6 text-uppercase fw-bold text-muted mb-3" style="letter-spacing: 0.06em;">Order Status</h2>
+        <div class="dq-tracking-steps">
+          <div class="dq-step {% if order.status in 'Placed,Preparing,Out for delivery,Delivered' %}completed active{% endif %}">
+            <div class="dq-step-circle"><i class="bi bi-receipt"></i></div>
+            <div class="dq-step-label">Placed</div>
+          </div>
+          <div class="dq-step {% if order.status in 'Preparing,Out for delivery,Delivered' %}completed active{% endif %}">
+            <div class="dq-step-circle"><i class="bi bi-fire"></i></div>
+            <div class="dq-step-label">Preparing</div>
+          </div>
+          <div class="dq-step {% if order.status in 'Out for delivery,Delivered' %}completed active{% endif %}">
+            <div class="dq-step-circle"><i class="bi bi-bicycle"></i></div>
+            <div class="dq-step-label">Out for Delivery</div>
+          </div>
+          <div class="dq-step {% if order.status == 'Delivered' %}completed active{% endif %}">
+            <div class="dq-step-circle"><i class="bi bi-house-check"></i></div>
+            <div class="dq-step-label">Delivered</div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Restaurant & Customer Metadata Grid -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 h-100">
+              <span class="text-muted small d-block mb-1">Restaurant Details</span>
+              <strong class="d-block text-dark fs-6">{{ order.restaurant.name }}</strong>
+              <div class="text-secondary small"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ order.restaurant.city }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 h-100">
+              <span class="text-muted small d-block mb-1">Customer &amp; Time</span>
+              <strong class="d-block text-dark fs-6">{{ order.customer.get_full_name|default:order.customer.username }}</strong>
+              <div class="text-secondary small"><i class="bi bi-clock me-1"></i>{{ order.placed_at|date:"M d, Y · h:i A" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Itemized Order Table -->
+        <h3 class="h6 text-uppercase fw-bold text-muted mb-3" style="letter-spacing: 0.06em;">Itemized Summary</h3>
+        <div class="table-responsive rounded-3 border mb-4">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr class="small text-uppercase text-secondary">
+                <th class="ps-3">Item Description</th>
+                <th class="text-center">Category</th>
+                <th class="text-end">Price</th>
+                <th class="text-center">Qty</th>
+                <th class="text-end pe-3">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for line in order.items.all %}
+              <tr>
+                <td class="ps-3 fw-semibold text-dark">{{ line.menu_item.name }}</td>
+                <td class="text-center">
+                  <span class="badge bg-light text-dark border rounded-pill">{{ line.menu_item.category }}</span>
+                </td>
+                <td class="text-end text-muted small">Rs {{ line.unit_price }}</td>
+                <td class="text-center fw-bold">{{ line.quantity }}</td>
+                <td class="text-end pe-3 fw-bold text-dark">Rs {{ line.line_total }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot class="border-top">
+              <tr>
+                <td colspan="4" class="text-end text-muted small">Standard Delivery Fee:</td>
+                <td class="text-end pe-3 text-success fw-bold small">FREE</td>
+              </tr>
+              <tr class="table-light">
+                <td colspan="4" class="text-end fw-bold fs-6">Grand Total Payable:</td>
+                <td class="text-end pe-3 fw-bold fs-5 text-success">Rs {{ order.total }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Backend Notice Callout -->
+        <div class="p-3 bg-light rounded-3 border d-flex align-items-center gap-3 mb-4">
+          <div class="text-primary fs-3"><i class="bi bi-envelope-check-fill"></i></div>
+          <div class="small">
+            <strong class="text-dark d-block">Automatic Notification &amp; Ledger Audit</strong>
+            A confirmation receipt has been sent to <code>{{ order.customer.email|default:order.customer.username }}</code>, and transaction details have been written to <code>orders_log.txt</code>.
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+          <a href="{% url 'restaurant-list' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="bi bi-shop me-1"></i> Order from Another Restaurant
+          </a>
+          <a href="{% url 'profile' %}" class="btn btn-success rounded-pill px-4 fw-semibold shadow-sm">
+            <i class="bi bi-person-circle me-1"></i> View Order in My Profile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

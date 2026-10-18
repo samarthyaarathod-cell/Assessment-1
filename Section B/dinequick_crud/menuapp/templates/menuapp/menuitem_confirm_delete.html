@@ -1,0 +1,6 @@
+{% extends "menuapp/base.html" %}
+{% block title %}Delete {{ object.name }}{% endblock %}
+{% block content %}
+<div class="breadcrumb"><a href="{% url 'menu-list' %}">Menu</a><span>/</span><span>Delete item</span></div>
+<section class="surface delete-surface"><div class="delete-icon">!</div><p class="eyebrow">PLEASE CONFIRM</p><h1>Remove this dish?</h1><p class="lead"><strong>{{ object.name }}</strong> will be removed from {{ object.restaurant.name }}’s menu. This action cannot be undone.</p><form method="post" class="delete-actions">{% csrf_token %}<a class="button button-quiet" href="{% url 'menu-list' %}">Keep item</a><button class="button button-danger" type="submit">Yes, delete item</button></form></section>
+{% endblock %}
